@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recompensas</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#764ba2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding-bottom: 70px;
+        }
+
+        /* === HEADER === */
+        header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        /* === PANTALLAS === */
+        .screen { display: none; padding: 1.5rem; }
+        .screen.active { display: block; }
+
+        /* === NAV INFERIOR (tabs tipo app) === */
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        nav button {
+            flex: 1;
+            padding: 0.8rem 0;
+            border: none;
+            background: none;
+            font-size: 0.75rem;
+            color: #999;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        nav button.active { color: #764ba2; }
+        nav button .icon { font-size: 1.4rem; }
+
+        /* === TARJETA DE PUNTOS === */
+        .card-puntos {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .card-label { opacity: 0.8; font-size: 0.9rem; }
+        .card-balance { font-size: 3rem; margin: 0.3rem 0; }
+
+        /* === MOVIMIENTOS === */
+        .section-title { margin-bottom: 1rem; color: #333; }
+        .movimientos { display: flex; flex-direction: column; gap: 0.8rem; }
+        .mov {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .mov small { color: #999; display: block; margin-top: 2px; }
+        .mov-pos { color: #27ae60; font-weight: bold; }
+        .mov-neg { color: #e74c3c; font-weight: bold; }
+
+        /* === QR === */
+        .qr-container {
+            text-align: center;
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 1rem;
+        }
+        .qr-container h3 { margin-bottom: 1.5rem; color: #333; }
+        #qr-code { display: flex; justify-content: center; margin-bottom: 1rem; }
+        .qr-numero { font-size: 1.3rem; font-weight: bold; color: #764ba2; margin-bottom: 0.5rem; }
+        .qr-hint { color: #999; }
+
+        /* === PROMOS === */
+        .promos-list { display: flex; flex-direction: column; gap: 1rem; }
+        .promo-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.2rem;
+            border-left: 4px solid #764ba2;
+        }
+        .promo-badge {
+            font-size: 0.75rem;
+            background: #f0e6ff;
+            color: #764ba2;
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-bottom: 0.5rem;
+        }
+        .promo-card h4 { margin-bottom: 0.3rem; }
+        .promo-card p { color: #555; font-size: 0.9rem; margin-bottom: 0.3rem; }
+        .promo-card small { color: #999; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎁 Recompensas</h1>
+    </header>
+
+    <!-- Pantalla 1: Balance -->
+    <div id="balance" class="screen active">
+        <!-- Tarjeta de puntos -->
+        <div class="card-puntos">
+            <p class="card-label">Tu balance</p>
+            <h2 class="card-balance">1,250</h2>
+            <p class="card-label">puntos</p>
+        </div>
+
+        <!-- Historial de movimientos -->
+        <h3 class="section-title">Últimos movimientos</h3>
+        <div class="movimientos">
+            <div class="mov">
+                <div>
+                    <strong>Compra en sucursal</strong>
+                    <small>19 mayo 2026</small>
+                </div>
+                <span class="mov-pos">+150</span>
+            </div>
+            <div class="mov">
+                <div>
+                    <strong>Canje: Café gratis</strong>
+                    <small>15 mayo 2026</small>
+                </div>
+                <span class="mov-neg">-200</span>
+            </div>
+            <div class="mov">
+                <div>
+                    <strong>Compra en sucursal</strong>
+                    <small>10 mayo 2026</small>
+                </div>
+                <span class="mov-pos">+300</span>
+            </div>
+            <div class="mov">
+                <div>
+                    <strong>Bono de bienvenida</strong>
+                    <small>1 mayo 2026</small>
+                </div>
+                <span class="mov-pos">+1000</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla 2: QR -->
+    <div id="qr" class="screen">
+        <div class="qr-container">
+            <h3>Tu código de cliente</h3>
+            <div id="qr-code"></div>
+            <p class="qr-numero">Cliente #00482</p>
+            <small class="qr-hint">Muestra este código en caja para acumular puntos</small>
+        </div>
+    </div>
+
+    <!-- Pantalla 3: Promos -->
+    <div id="promos" class="screen">
+        <h3 class="section-title">Promociones activas</h3>
+        <div class="promos-list">
+            <div class="promo-card">
+                <div class="promo-badge">🔥 Nuevo</div>
+                <h4>2x1 en bebidas</h4>
+                <p>Todos los martes de mayo. Presenta tu app en caja.</p>
+                <small>Válido hasta 31 mayo 2026</small>
+            </div>
+            <div class="promo-card">
+                <div class="promo-badge">⭐ Exclusivo</div>
+                <h4>10% de descuento</h4>
+                <p>En tu próxima compra mayor a $500. Acumula puntos dobles.</p>
+                <small>Válido hasta 15 junio 2026</small>
+            </div>
+            <div class="promo-card">
+                <div class="promo-badge">🎁 Canjea</div>
+                <h4>Café gratis con 200 pts</h4>
+                <p>Canjea tus puntos por un café de cualquier tamaño.</p>
+                <small>Permanente</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegación inferior -->
+    <nav>
+        <button class="active" data-screen="balance">
+            <span class="icon">💰</span>Balance
+        </button>
+        <button data-screen="qr">
+            <span class="icon">📱</span>Mi QR
+        </button>
+        <button data-screen="promos">
+            <span class="icon">🏷️</span>Promos
+        </button>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        // Navegación entre pantallas
+        document.querySelectorAll('nav button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+                document.getElementById(btn.dataset.screen).classList.add('active');
+                btn.classList.add('active');
+            });
+        });
+
+        // Generar QR con número de cliente
+        new QRCode(document.getElementById("qr-code"), {
+            text: "CLIENTE-00482",
+            width: 200,
+            height: 200,
+            colorDark: "#764ba2"
+        });
+
+        // Registrar Service Worker (para que sea PWA)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+
+</body>
+</html>

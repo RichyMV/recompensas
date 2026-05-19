@@ -1,0 +1,16 @@
+{
+  "name": "Recompensas",
+  "short_name": "Recompensas",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#764ba2",
+  "theme_color": "#764ba2",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
