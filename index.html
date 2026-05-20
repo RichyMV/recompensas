@@ -265,6 +265,7 @@
         const errorEl = document.getElementById('login-error');
 
         let confirmationResult = null;
+        let recaptcha = null;
 
         // Si ya está logueado, mostrar app
         onAuthStateChanged(auth, (user) => {
@@ -273,18 +274,24 @@
             }
         });
 
+        function setupRecaptcha() {
+            if (recaptcha) recaptcha.clear();
+            recaptcha = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+            return recaptcha;
+        }
+
         // Paso 1: Enviar código SMS
         btnSend.addEventListener('click', async () => {
-            const phone = phoneInput.value.trim();
+            let phone = phoneInput.value.trim();
             if (!phone) { errorEl.textContent = 'Ingresa tu número'; return; }
+            if (!phone.startsWith('+')) phone = '+52' + phone;
 
             btnSend.disabled = true;
             errorEl.textContent = '';
 
             try {
-                const recaptcha = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
-                confirmationResult = await signInWithPhoneNumber(auth, phone, recaptcha);
-                // Mostrar paso 2
+                const verifier = setupRecaptcha();
+                confirmationResult = await signInWithPhoneNumber(auth, phone, verifier);
                 document.querySelector('.step1').style.display = 'none';
                 document.querySelector('.step2').style.display = 'block';
             } catch (e) {
