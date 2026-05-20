@@ -28,7 +28,50 @@
         .screen { display: none; padding: 1.5rem; }
         .screen.active { display: block; }
 
-        /* === NAV INFERIOR (tabs tipo app) === */
+        /* === LOGIN === */
+        #login {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+        #login h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        #login p { opacity: 0.8; margin-bottom: 2rem; }
+        #login input {
+            width: 100%;
+            max-width: 300px;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        #login button {
+            padding: 1rem 2rem;
+            background: white;
+            color: #764ba2;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            max-width: 300px;
+        }
+        #login button:disabled { opacity: 0.5; }
+        #login .error { color: #ffcccc; margin-top: 1rem; font-size: 0.9rem; }
+        #login .step2 { display: none; }
+
+        /* === APP (oculta hasta login) === */
+        #app { display: none; }
+
+        /* === NAV INFERIOR === */
         nav {
             position: fixed;
             bottom: 0;
@@ -118,103 +161,210 @@
 </head>
 <body>
 
-    <header>
-        <h1>🎁 Recompensas</h1>
-    </header>
+    <!-- ===== PANTALLA DE LOGIN ===== -->
+    <div id="login">
+        <h1>🎁</h1>
+        <h1>Recompensas</h1>
+        <p>Ingresa con tu número de teléfono</p>
 
-    <!-- Pantalla 1: Balance -->
-    <div id="balance" class="screen active">
-        <!-- Tarjeta de puntos -->
-        <div class="card-puntos">
-            <p class="card-label">Tu balance</p>
-            <h2 class="card-balance">1,250</h2>
-            <p class="card-label">puntos</p>
+        <!-- Paso 1: Pedir teléfono -->
+        <div class="step1">
+            <input type="tel" id="phone" placeholder="+52 481 123 4567">
+            <br>
+            <button id="btn-send-code">Enviar código</button>
         </div>
 
-        <!-- Historial de movimientos -->
-        <h3 class="section-title">Últimos movimientos</h3>
-        <div class="movimientos">
-            <div class="mov">
-                <div>
-                    <strong>Compra en sucursal</strong>
-                    <small>19 mayo 2026</small>
-                </div>
-                <span class="mov-pos">+150</span>
-            </div>
-            <div class="mov">
-                <div>
-                    <strong>Canje: Café gratis</strong>
-                    <small>15 mayo 2026</small>
-                </div>
-                <span class="mov-neg">-200</span>
-            </div>
-            <div class="mov">
-                <div>
-                    <strong>Compra en sucursal</strong>
-                    <small>10 mayo 2026</small>
-                </div>
-                <span class="mov-pos">+300</span>
-            </div>
-            <div class="mov">
-                <div>
-                    <strong>Bono de bienvenida</strong>
-                    <small>1 mayo 2026</small>
-                </div>
-                <span class="mov-pos">+1000</span>
-            </div>
+        <!-- Paso 2: Verificar código SMS -->
+        <div class="step2">
+            <input type="text" id="code" placeholder="Código de 6 dígitos" maxlength="6">
+            <br>
+            <button id="btn-verify">Verificar</button>
         </div>
+
+        <div id="recaptcha-container"></div>
+        <p class="error" id="login-error"></p>
     </div>
 
-    <!-- Pantalla 2: QR -->
-    <div id="qr" class="screen">
-        <div class="qr-container">
-            <h3>Tu código de cliente</h3>
-            <div id="qr-code"></div>
-            <p class="qr-numero">Cliente #00482</p>
-            <small class="qr-hint">Muestra este código en caja para acumular puntos</small>
-        </div>
-    </div>
+    <!-- ===== APP PRINCIPAL (se muestra después del login) ===== -->
+    <div id="app">
+        <header>
+            <h1>🎁 Recompensas</h1>
+        </header>
 
-    <!-- Pantalla 3: Promos -->
-    <div id="promos" class="screen">
-        <h3 class="section-title">Promociones activas</h3>
-        <div class="promos-list">
-            <div class="promo-card">
-                <div class="promo-badge">🔥 Nuevo</div>
-                <h4>2x1 en bebidas</h4>
-                <p>Todos los martes de mayo. Presenta tu app en caja.</p>
-                <small>Válido hasta 31 mayo 2026</small>
+        <!-- Pantalla 1: Balance -->
+        <div id="balance" class="screen active">
+            <div class="card-puntos">
+                <p class="card-label">Tu balance</p>
+                <h2 class="card-balance" id="user-points">--</h2>
+                <p class="card-label">puntos</p>
             </div>
-            <div class="promo-card">
-                <div class="promo-badge">⭐ Exclusivo</div>
-                <h4>10% de descuento</h4>
-                <p>En tu próxima compra mayor a $500. Acumula puntos dobles.</p>
-                <small>Válido hasta 15 junio 2026</small>
-            </div>
-            <div class="promo-card">
-                <div class="promo-badge">🎁 Canjea</div>
-                <h4>Café gratis con 200 pts</h4>
-                <p>Canjea tus puntos por un café de cualquier tamaño.</p>
-                <small>Permanente</small>
+            <h3 class="section-title">Últimos movimientos</h3>
+            <div class="movimientos" id="movimientos-list">
+                <p style="color:#999; text-align:center;">Cargando...</p>
             </div>
         </div>
-    </div>
 
-    <!-- Navegación inferior -->
-    <nav>
-        <button class="active" data-screen="balance">
-            <span class="icon">💰</span>Balance
-        </button>
-        <button data-screen="qr">
-            <span class="icon">📱</span>Mi QR
-        </button>
-        <button data-screen="promos">
-            <span class="icon">🏷️</span>Promos
-        </button>
-    </nav>
+        <!-- Pantalla 2: QR -->
+        <div id="qr" class="screen">
+            <div class="qr-container">
+                <h3>Tu código de cliente</h3>
+                <div id="qr-code"></div>
+                <p class="qr-numero" id="qr-cliente-id"></p>
+                <small class="qr-hint">Muestra este código en caja para acumular puntos</small>
+            </div>
+        </div>
+
+        <!-- Pantalla 3: Promos -->
+        <div id="promos" class="screen">
+            <h3 class="section-title">Promociones activas</h3>
+            <div class="promos-list" id="promos-list">
+                <p style="color:#999; text-align:center;">Cargando...</p>
+            </div>
+        </div>
+
+        <!-- Navegación inferior -->
+        <nav>
+            <button class="active" data-screen="balance">
+                <span class="icon">💰</span>Balance
+            </button>
+            <button data-screen="qr">
+                <span class="icon">📱</span>Mi QR
+            </button>
+            <button data-screen="promos">
+                <span class="icon">🏷️</span>Promos
+            </button>
+        </nav>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpi3oVidbXtv2t_uyb8sUGYIudrkH8cuU",
+            authDomain: "snack-loyalty.firebaseapp.com",
+            projectId: "snack-loyalty",
+            storageBucket: "snack-loyalty.firebasestorage.app",
+            messagingSenderId: "806364481783",
+            appId: "1:806364481783:web:e271f186450a922c99ebf2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        auth.languageCode = 'es';
+
+        // Elementos
+        const loginDiv = document.getElementById('login');
+        const appDiv = document.getElementById('app');
+        const phoneInput = document.getElementById('phone');
+        const codeInput = document.getElementById('code');
+        const btnSend = document.getElementById('btn-send-code');
+        const btnVerify = document.getElementById('btn-verify');
+        const errorEl = document.getElementById('login-error');
+
+        let confirmationResult = null;
+
+        // Si ya está logueado, mostrar app
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                showApp(user);
+            }
+        });
+
+        // Paso 1: Enviar código SMS
+        btnSend.addEventListener('click', async () => {
+            const phone = phoneInput.value.trim();
+            if (!phone) { errorEl.textContent = 'Ingresa tu número'; return; }
+
+            btnSend.disabled = true;
+            errorEl.textContent = '';
+
+            try {
+                const recaptcha = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+                confirmationResult = await signInWithPhoneNumber(auth, phone, recaptcha);
+                // Mostrar paso 2
+                document.querySelector('.step1').style.display = 'none';
+                document.querySelector('.step2').style.display = 'block';
+            } catch (e) {
+                errorEl.textContent = 'Error: ' + e.message;
+                btnSend.disabled = false;
+            }
+        });
+
+        // Paso 2: Verificar código
+        btnVerify.addEventListener('click', async () => {
+            const code = codeInput.value.trim();
+            if (!code) { errorEl.textContent = 'Ingresa el código'; return; }
+
+            btnVerify.disabled = true;
+            try {
+                await confirmationResult.confirm(code);
+                // onAuthStateChanged se encarga de mostrar la app
+            } catch (e) {
+                errorEl.textContent = 'Código incorrecto';
+                btnVerify.disabled = false;
+            }
+        });
+
+        // Mostrar la app después del login
+        function showApp(user) {
+            loginDiv.style.display = 'none';
+            appDiv.style.display = 'block';
+            document.body.style.paddingBottom = '70px';
+
+            const phone = user.phoneNumber || 'Cliente';
+            document.getElementById('qr-cliente-id').textContent = phone;
+
+            // Generar QR con el teléfono del usuario
+            document.getElementById('qr-code').innerHTML = '';
+            new QRCode(document.getElementById("qr-code"), {
+                text: phone,
+                width: 200,
+                height: 200,
+                colorDark: "#764ba2"
+            });
+
+            // Cargar puntos reales desde Loyverse
+            loadPoints(user);
+
+            // Por ahora promos hardcodeadas (después las jalamos de Firebase)
+            document.getElementById('promos-list').innerHTML = `
+                <div class="promo-card"><div class="promo-badge">🔥 Nuevo</div><h4>2x1 en bebidas</h4><p>Todos los martes de mayo.</p><small>Válido hasta 31 mayo 2026</small></div>
+                <div class="promo-card"><div class="promo-badge">⭐ Exclusivo</div><h4>10% de descuento</h4><p>En tu próxima compra mayor a $500.</p><small>Válido hasta 15 junio 2026</small></div>
+                <div class="promo-card"><div class="promo-badge">🎁 Canjea</div><h4>Café gratis con 200 pts</h4><p>Canjea tus puntos por un café.</p><small>Permanente</small></div>
+            `;
+        }
+
+        // Llamar a la Cloud Function para obtener puntos de Loyverse
+        async function loadPoints(user) {
+            try {
+                const token = await user.getIdToken();
+                const res = await fetch("https://getcustomerpoints-dbjppwwq2q-uc.a.run.app", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('user-points').textContent = Math.floor(data.points);
+                    document.getElementById('movimientos-list').innerHTML = `
+                        <div class="mov"><div><strong>${data.name}</strong><small>${data.visits} visitas</small></div><span class="mov-pos">${Math.floor(data.points)} pts</span></div>
+                    `;
+                } else {
+                    document.getElementById('user-points').textContent = '0';
+                    document.getElementById('movimientos-list').innerHTML = `
+                        <p style="color:#999; text-align:center;">No se encontró tu cuenta en el sistema de puntos. Pregunta en sucursal.</p>
+                    `;
+                }
+            } catch (e) {
+                document.getElementById('user-points').textContent = '--';
+                document.getElementById('movimientos-list').innerHTML = `
+                    <p style="color:#999; text-align:center;">Error al cargar puntos. Intenta de nuevo.</p>
+                `;
+            }
+        }
+
         // Navegación entre pantallas
         document.querySelectorAll('nav button').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -225,15 +375,7 @@
             });
         });
 
-        // Generar QR con número de cliente
-        new QRCode(document.getElementById("qr-code"), {
-            text: "CLIENTE-00482",
-            width: 200,
-            height: 200,
-            colorDark: "#764ba2"
-        });
-
-        // Registrar Service Worker (para que sea PWA)
+        // Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
