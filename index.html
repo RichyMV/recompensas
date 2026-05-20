@@ -189,6 +189,7 @@
     <div id="app">
         <header>
             <h1>🎁 Recompensas</h1>
+            <button id="btn-logout" style="background:none;border:1px solid white;color:white;padding:4px 10px;border-radius:20px;font-size:0.75rem;margin-top:8px;cursor:pointer;">Cerrar sesión</button>
         </header>
 
         <!-- Pantalla 1: Balance -->
@@ -239,7 +240,7 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
         // Firebase config
         const firebaseConfig = {
@@ -380,6 +381,11 @@
                 document.getElementById(btn.dataset.screen).classList.add('active');
                 btn.classList.add('active');
             });
+        });
+
+        // Cerrar sesión
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            signOut(auth).then(() => location.reload());
         });
 
         // Service Worker
