@@ -2,42 +2,63 @@ const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 admin.initializeApp();
 
-// Cloud Function: busca cliente en Loyverse por teléfono y devuelve sus puntos
-exports.getCustomerPoints = onRequest({ cors: true, secrets: ["LOYVERSE_TOKEN"] }, async (req, res) => {
-  // Verificar que el usuario esté autenticado
+exports.getCustomerPoints = onRequest({ cors: true, secrets: ["LOYVERSE_TOKEN"], invoker: "public" }, async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ error: "No autorizado" });
   }
 
   try {
-    // Verificar token de Firebase Auth
     const idToken = authHeader.split("Bearer ")[1];
     const decoded = await admin.auth().verifyIdToken(idToken);
     const phone = decoded.phone_number;
 
     if (!phone) return res.status(400).json({ error: "Sin teléfono" });
 
-    // Llamar a Loyverse API
+    // Extraer solo los dígitos del teléfono (sin +52)
+    const digits = phone.replace(/\D/g, '');
+    const localPhone = digits.startsWith('52') ? digits.slice(2) : digits;
+
     const loyverseToken = process.env.LOYVERSE_TOKEN;
-    const response = await fetch(
-      `https://api.loyverse.com/v1.0/customers?phone_number=${encodeURIComponent(phone)}`,
-      { headers: { Authorization: `Bearer ${loyverseToken}` } }
-    );
 
-    const data = await response.json();
+    // Loyverse API: listar clientes y buscar por teléfono
+    let cursor = null;
+    let found = null;
 
-    if (data.customers && data.customers.length > 0) {
-      const customer = data.customers[0];
+    while (!found) {
+      const url = cursor
+        ? `https://api.loyverse.com/v1.0/customers?cursor=${cursor}`
+        : `https://api.loyverse.com/v1.0/customers?limit=250`;
+
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${loyverseToken}` }
+      });
+
+      const data = await response.json();
+
+      if (!data.customers || data.customers.length === 0) break;
+
+      // Buscar coincidencia por teléfono (comparar últimos 10 dígitos)
+      found = data.customers.find(c => {
+        if (!c.phone_number) return false;
+        const cDigits = c.phone_number.replace(/\D/g, '');
+        return cDigits.endsWith(localPhone) || localPhone.endsWith(cDigits);
+      });
+
+      cursor = data.cursor;
+      if (!cursor) break;
+    }
+
+    if (found) {
       return res.json({
-        name: customer.name,
-        points: customer.total_points || 0,
-        customer_id: customer.id,
-        visits: customer.total_visits || 0
+        name: found.name,
+        points: found.total_points || 0,
+        customer_id: found.id,
+        visits: found.total_visits || 0
       });
     }
 
-    return res.status(404).json({ error: "Cliente no encontrado en Loyverse" });
+    return res.status(404).json({ error: "Cliente no encontrado", phone_searched: localPhone });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
